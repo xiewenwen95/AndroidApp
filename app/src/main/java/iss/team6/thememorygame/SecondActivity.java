@@ -1,11 +1,15 @@
 package iss.team6.thememorygame;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.gridlayout.widget.GridLayout;
@@ -16,7 +20,6 @@ import java.util.TimerTask;
 public class SecondActivity extends AppCompatActivity {
 
     private GameLogic gameLogic;
-    //private Timer timer=new Timer();
     private Handler mHandler = new Handler();
 
     public class ImageClickListener implements View.OnClickListener {
@@ -50,23 +53,29 @@ public class SecondActivity extends AppCompatActivity {
                                           +firstCardY);
                                   firstCardView.setVisibility(View.INVISIBLE);
                                   imageView.setVisibility(View.INVISIBLE);
-                                  gameLogic.resetState();
+                                  TextView textView=findViewById(R.id.score);
+                                  String marks=gameLogic.getUpdatedScore();
+                                  textView.setText(marks);
+                                  if(gameLogic.isGameEnded())
+                                  {
+                                      Context context = getApplicationContext();
+                                      Chronometer chronometer =  (Chronometer) findViewById(R.id.chronometer);
+                                      chronometer.stop();
+                                      String time=chronometer.getText().toString();
+                                      CharSequence text = "you complete the game in "+time;
+                                      int duration = Toast.LENGTH_SHORT;
+                                      Toast toast = Toast.makeText(context, text, duration);
+                                      toast.show();
+                                      finish();
+                                  }
+                                  else
+                                  {
+                                      gameLogic.resetState();
+                                  }
                               }
                           };
                           mHandler.removeCallbacks(mUpdateTimeTask);
                           mHandler.postDelayed(mUpdateTimeTask, 2000);
-                          /*timer.schedule(new TimerTask() {
-                              @Override
-                              public void run() {
-                                int firstCardX=gameLogic.getFirstSwappedCard().getX();
-                                int firstCardY=gameLogic.getFirstSwappedCard().getY();
-                                GridLayout gridLayout = (GridLayout) findViewById(R.id.gridLayout);
-                                ImageView firstCardView=getImageView(firstCardX* gridLayout.getColumnCount()
-                                +firstCardY);
-                                firstCardView.setVisibility(View.INVISIBLE);
-                                gameLogic.resetState();
-                              }
-                          }, 2*1000);*/
                       }
                       else
                       {
@@ -86,20 +95,6 @@ public class SecondActivity extends AppCompatActivity {
                           mHandler.removeCallbacks(mUpdateTimeTask);
                           mHandler.postDelayed(mUpdateTimeTask, 2000);
 
-                          /*timer.schedule(new TimerTask() {
-                              @Override
-                              public void run() {
-                                  int firstCardX=gameLogic.getFirstSwappedCard().getX();
-                                  int firstCardY=gameLogic.getFirstSwappedCard().getY();
-                                  GridLayout gridLayout = (GridLayout) findViewById(R.id.gridLayout);
-                                  ImageView firstCardView=getImageView(firstCardX* gridLayout.getColumnCount()
-                                          +firstCardY);
-                                  setPlaceholder(firstCardView);
-                                  ImageView secondCardView = (ImageView) view;
-                                  setPlaceholder(secondCardView);
-                                  gameLogic.resetState();
-                              }
-                          }, 2*1000);*/
                       }
                   }
               }
@@ -142,4 +137,5 @@ public class SecondActivity extends AppCompatActivity {
         int drawableId=getResources().getIdentifier("card_back","drawable",getPackageName());
         imageView.setImageResource(drawableId);
     }
+
 }

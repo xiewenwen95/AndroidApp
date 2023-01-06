@@ -141,7 +141,7 @@ public class GameLogic {
     public String getUpdatedScore()
     {
         String temp=Integer.toString(points);
-        String marks=temp+"of 6 matches";
+        String marks=temp+" of 6 matches";
         return marks;
     }
 
