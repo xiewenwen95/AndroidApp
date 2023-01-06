@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -46,7 +47,9 @@ import java.util.List;
          ImageView imageView;
          if (convertView == null) {
              imageView = new ImageView(context);
+             imageView.setLayoutParams(new GridView.LayoutParams(230, 240));
              imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
          } else {
              imageView = (ImageView) convertView;
          }
