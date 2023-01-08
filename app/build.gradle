@@ -8,8 +8,9 @@ android {
 
     defaultConfig {
         applicationId "iss.team6.thememorygame"
-        minSdk 29
-        targetSdk 32
+        minSdk 21
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk 23
         versionCode 1
         versionName "1.0"
 

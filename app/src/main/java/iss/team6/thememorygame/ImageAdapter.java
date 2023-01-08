@@ -1,6 +1,8 @@
 package iss.team6.thememorygame;
 
 
+import static iss.team6.thememorygame.ImageLoader.mainActivity;
+
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
@@ -54,9 +56,8 @@ import java.util.List;
              imageView = (ImageView) convertView;
          }
 
-         String url = imageUrls.get(position);
-         new ImageLoader().execute(imageView, url);
-
+         String url = (String) getItem(position);
+         new ImageLoader(mainActivity).execute(imageView, url);
          return imageView;
      }
  }

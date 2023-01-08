@@ -2,6 +2,8 @@ package iss.team6.thememorygame;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import static iss.team6.thememorygame.ImageLoader.saveImageToFile;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -17,6 +19,7 @@ import android.os.Bundle;
 
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -41,7 +44,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private Button fetchBtn;
@@ -51,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button restartBtn;
     private DialogFragment dialogFragment;
+    private Map<Integer,String> saveImgMap = new HashMap();
     //the inputUrl will be passed to the fetch method,which will later use Picasso lib to download the first 20 images
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +65,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         fetchUrl=(EditText)findViewById(R.id.fetchUrl);
         fetchBtn=(Button) findViewById(R.id.fetchBtn);
-        gridView=(GridView)findViewById(R.id.girdView);
-        imageLoader = new ImageLoader(MainActivity.this);
         progressBar=(ProgressBar)findViewById(R.id.progressBar);
         restartBtn=(Button) findViewById(R.id.restartBtn);
+        gridView=(GridView)findViewById(R.id.girdView);//initialize all ui elements
+        imageLoader = new ImageLoader(MainActivity.this);
+
         fetchBtn.setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View view) {
@@ -75,7 +83,34 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(getIntent());
             }
         });
-    }
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ImageAdapter adapter = (ImageAdapter) gridView.getAdapter();
+                String imgurlpath= (String) adapter.getItem(position);
+
+                if (!saveImgMap.containsKey(position)){
+                    //download
+                    saveImgMap.put(position,"");
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String filename = "image" + UUID.randomUUID().toString();
+                            Bitmap bitmap =imageLoader.downloadImage(imgurlpath);
+                            saveImageToFile(bitmap, filename);
+                        }
+                    }).start();
+                }else{
+                    Toast.makeText(MainActivity.this,"image downloaded",Toast.LENGTH_SHORT).show();
+                }
+
+                if (saveImgMap.size()>=6){
+                    startGame();
+                    saveImgMap.clear();
+                }
+
+            }
+        });}
     public void fetch() {
         String imageUrl=fetchUrl.getText().toString();
         new ImageUrlParser((ProgressBar)findViewById(R.id.progressBar),20).execute(imageUrl);
@@ -83,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
  public void startGame(){
     dialogFragment= new MyDialogFragment();
     dialogFragment.show(getSupportFragmentManager(),"MyDialogueFragment");
-
  }
 
 
@@ -91,10 +125,11 @@ private class ImageUrlParser extends AsyncTask<String,Void,ArrayList<String>> {
     private ProgressBar progressBar;
 
     private int toaalImgs;
-
+    private Elements imgElement;
     public ImageUrlParser(ProgressBar progressBar, int toaalImgs) {
         this.progressBar = (ProgressBar)findViewById(R.id.progressBar);
         this.toaalImgs = 20;
+
     }
 
     @Override
@@ -104,9 +139,13 @@ private class ImageUrlParser extends AsyncTask<String,Void,ArrayList<String>> {
         try{
             Document doc=Jsoup.connect(imgUrl).get();
             Elements imgElement=doc.select("img");
-
-            for(int i=0;i<20&& i < imgElement.size();i++){
-                imageUrls.add(imgElement.get(i).attr("src"));
+            for(int i=0; i < imgElement.size();i++){
+                String src=imgElement.get(i).attr("src");
+                if(src.endsWith("jpeg")||src.endsWith("jpg")){
+                imageUrls.add(src);
+                if(imageUrls.size()==20){
+                    break;
+                }}
             }
             int progress=1;
 

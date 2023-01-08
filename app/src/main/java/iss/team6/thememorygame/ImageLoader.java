@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.FileInputStream;
@@ -19,7 +20,6 @@ import java.net.URLConnection;
 
 public class ImageLoader extends AsyncTask<Object, Void, Bitmap> {
     ImageView imageView;
-    String imageUrl;
     private Context context;
     static String filename;
     static MainActivity mainActivity;
@@ -28,15 +28,13 @@ public class ImageLoader extends AsyncTask<Object, Void, Bitmap> {
         this.mainActivity = mainActivity;
     }
 
-    public ImageLoader() {
 
-    }
 
     @Override
     protected Bitmap doInBackground(Object... objects) {
         imageView = (ImageView) objects[0];
-        imageUrl = (String) objects[1];
-        return downloadImage();
+        String imgurlpath = (String) objects[1];
+        return downloadImage(imgurlpath);
     }
 
     @Override
@@ -44,67 +42,57 @@ public class ImageLoader extends AsyncTask<Object, Void, Bitmap> {
         super.onPostExecute(bitmap);
         imageView.setImageBitmap(bitmap);
     }
-
-    private Bitmap downloadImage() {
+    public Bitmap downloadImage(String imgurlpath) {
         Bitmap bitmap = null;
         InputStream stream;
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inSampleSize = 1;
-
+        bmOptions.inSampleSize = 4;
         try {
-            stream = getHttpConnection(imageUrl);
-            bitmap = BitmapFactory.decodeStream(stream, null, bmOptions);
-            stream.close();
-            int width= imageView.getMeasuredWidth();
-            int height= imageView.getMeasuredHeight();
-            bitmap=Bitmap.createScaledBitmap(bitmap,width,height,false);
+            URL url=new URL(imgurlpath);
+            HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+            httpConnection.setRequestMethod("GET");
+            httpConnection.connect();
+            if (httpConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                Log.e("ImageLoader", "Error downloading image: " + httpConnection.getResponseCode());
+                return null;
+            }else {
+                stream = httpConnection.getInputStream();
+                bitmap = BitmapFactory.decodeStream(stream, null, bmOptions);
+                stream.close();
+                int width = 100;
+                int height = 100;
+                bitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
+            }
         } catch (IOException e1) {
             e1.printStackTrace();
         }
         return bitmap;
     }
 
-    private InputStream getHttpConnection(String urlString) throws IOException {
-        InputStream stream = null;
-        URL url = new URL(urlString);
-        URLConnection connection = url.openConnection();
-
-        try {
-            HttpURLConnection httpConnection = (HttpURLConnection) connection;
-            httpConnection.setRequestMethod("GET");
-            httpConnection.connect();
-
-            if (httpConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                stream = httpConnection.getInputStream();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return stream;
-    }
-    public static void saveImageToFile(Bitmap bitmap,String filename){
+     static void saveImageToFile(Bitmap bitmap,String filename){
+         if (bitmap == null) {
+             return;
+         }
         Bitmap.CompressFormat compressFormat= Bitmap.CompressFormat.JPEG;
         int quality=100;
         OutputStream fout=null;
-        int savingLimitation=0;
-        do{
-            try{
-                fout=new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/"+filename+".jpg");
-            }
-            catch (FileNotFoundException exception){
+        //for(int i=0;i<6;i++) {
+            try {
+                //fout = new FileOutputStream(Environment.getExternalStorageDirectory().getPath() + "/" + filename + ".jpg");
+                fout = new FileOutputStream(mainActivity.getFilesDir() + "/" + filename + ".jpg");
+            } catch (FileNotFoundException exception) {
                 exception.printStackTrace();
             }
-            bitmap.compress(compressFormat,quality,fout);
-            try{
+            bitmap.compress(compressFormat, quality, fout);
+            try {
                 fout.flush();
                 fout.close();
-            }
-            catch (IOException ioException){
+            } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
-            savingLimitation++;}
-        while(savingLimitation<6);
-        mainActivity.startGame();
+        //}
+
+
     }
     public static Bitmap getBitmapFromFile(){
         try{
