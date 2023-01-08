@@ -9,6 +9,11 @@ import android.view.View;
 import android.widget.Button;
 
 import androidx.fragment.app.DialogFragment;
+
+import java.util.Map;
+
+import kotlinx.coroutines.MainCoroutineDispatcher;
+
 public class MyDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -19,6 +24,14 @@ public class MyDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), SecondActivity.class);
+                Map<Integer, String> hashSet = ((MainActivity)getActivity()).getSaveImgMap();
+                String[] imgPathsArr = new String[hashSet.size()];
+                int index = 0;
+                for(String path: hashSet.values())
+                {
+                    imgPathsArr[index++] = path;
+                }
+                intent.putExtra("ImgPaths", imgPathsArr);
                 startActivity(intent);
             }
         });

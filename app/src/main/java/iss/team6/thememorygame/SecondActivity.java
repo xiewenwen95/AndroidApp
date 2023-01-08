@@ -1,10 +1,11 @@
 package iss.team6.thememorygame;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageView;
@@ -14,13 +15,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.gridlayout.widget.GridLayout;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SecondActivity extends AppCompatActivity {
 
     private GameLogic gameLogic;
     private Handler mHandler = new Handler();
+    private Map<String, Bitmap> cardImgMap;
 
     public class ImageClickListener implements View.OnClickListener {
       @Override
@@ -36,10 +39,9 @@ public class SecondActivity extends AppCompatActivity {
               if(cards != null)
               {
                   Card currentCard = gameLogic.getCardByPosition(x, y);
-                  String showCard=currentCard.getImageName();
+                  String showCardName=currentCard.getImageName();
                   ImageView imageView = (ImageView) view;
-                  int drawableId=getResources().getIdentifier(showCard,"drawable",getPackageName());
-                  imageView.setImageResource(drawableId);
+                  imageView.setImageBitmap(cardImgMap.get(showCardName));
                   if(cards.length == 2)
                   {
                       if(cards[0].isRemoved())
@@ -104,11 +106,33 @@ public class SecondActivity extends AppCompatActivity {
       }
     }
 
+    private void initCardImageMap(String[] cardImgNames)
+    {
+        cardImgMap = new HashMap();
+        for(String imgName: cardImgNames)
+        {
+
+            String imgPath = getFilesDir() + "/" + imgName + ".jpg";
+            File imgFile = new  File(imgPath);
+
+            if(imgFile.exists()){
+
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+                cardImgMap.put(imgName, myBitmap);
+
+            }
+        }
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String[] ImageNameList=new String[]{"apple_pic","banana_pic","cherry_pic","orange_pic",
-                "pear_pic", "pineapple_pic"};//暂时写死，等待秉馨传输名称
+        Intent intent = getIntent();
+
+        String[] ImageNameList=intent.getStringArrayExtra("ImgPaths");
+        initCardImageMap(ImageNameList);
         gameLogic=new GameLogic(ImageNameList);
         setContentView(R.layout.activity_second);
         GridLayout gridLayout = (GridLayout) findViewById(R.id.gridLayout);

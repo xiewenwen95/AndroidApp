@@ -57,7 +57,13 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button restartBtn;
     private DialogFragment dialogFragment;
+
     private Map<Integer,String> saveImgMap = new HashMap();
+
+    public Map<Integer, String> getSaveImgMap() {
+        return saveImgMap;
+    }
+
     //the inputUrl will be passed to the fetch method,which will later use Picasso lib to download the first 20 images
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,27 +96,30 @@ public class MainActivity extends AppCompatActivity {
                 String imgurlpath= (String) adapter.getItem(position);
 
                 if (!saveImgMap.containsKey(position)){
-                    //download
-                    saveImgMap.put(position,"");
+
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             String filename = "image" + UUID.randomUUID().toString();
                             Bitmap bitmap =imageLoader.downloadImage(imgurlpath);
                             saveImageToFile(bitmap, filename);
+                            //download
+                            saveImgMap.put(position,filename);
+                            if (saveImgMap.size()>=6){
+                                startGame();
+                            }
                         }
                     }).start();
+
                 }else{
                     Toast.makeText(MainActivity.this,"image downloaded",Toast.LENGTH_SHORT).show();
                 }
 
-                if (saveImgMap.size()>=6){
-                    startGame();
-                    saveImgMap.clear();
-                }
+
 
             }
         });}
+
     public void fetch() {
         String imageUrl=fetchUrl.getText().toString();
         new ImageUrlParser((ProgressBar)findViewById(R.id.progressBar),20).execute(imageUrl);
