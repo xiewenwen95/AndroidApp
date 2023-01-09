@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
         finish();
-        //startActivity(getIntent());
+        startActivity(getIntent());
     }
 
     public void fetch() {
