@@ -3,5 +3,3 @@
 ## AndroidCA: The Memory Game
 - Activity 1
 - Activity 2
-
-add both activity 1 and 2
