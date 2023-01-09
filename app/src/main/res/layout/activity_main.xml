@@ -64,7 +64,7 @@
         android:layout_marginStart="28dp"
         android:layout_marginTop="33dp"
         android:max="20"
-        android:background="@android:drawable/progress_indeterminate_horizontal"
+        android:background="@android:drawable/progress_horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/girdView" />
 

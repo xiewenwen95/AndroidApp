@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         restartBtn=(Button) findViewById(R.id.restartBtn);
         gridView=(GridView)findViewById(R.id.girdView);//initialize all ui elements
         imageLoader = new ImageLoader(MainActivity.this);
-
+        saveImgMap = new HashMap<>();
         fetchBtn.setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View view) {
@@ -114,11 +115,15 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(MainActivity.this,"image downloaded",Toast.LENGTH_SHORT).show();
                 }
-
-
-
             }
         });}
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        finish();
+        //startActivity(getIntent());
+    }
 
     public void fetch() {
         String imageUrl=fetchUrl.getText().toString();
@@ -148,22 +153,24 @@ private class ImageUrlParser extends AsyncTask<String,Void,ArrayList<String>> {
         try{
             Document doc=Jsoup.connect(imgUrl).get();
             Elements imgElement=doc.select("img");
-            for(int i=0; i < imgElement.size();i++){
-                String src=imgElement.get(i).attr("src");
-                if(src.endsWith("jpeg")||src.endsWith("jpg")){
-                imageUrls.add(src);
-                if(imageUrls.size()==20){
-                    break;
-                }}
-            }
-            int progress=1;
 
-            progressBar.post(new Runnable() {
-                @Override
-                public void run() {
-                    progressBar.setProgress(progress);
+            for(int i=0; i < imgElement.size();i++) {
+
+                String src = imgElement.get(i).attr("src");
+                if (src.endsWith("jpeg") || src.endsWith("jpg")) {
+                    imageUrls.add(src);
+
+                    progressBar.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setProgress(progressBar.getProgress() + 1);
+                        }
+                    }, i * new Random().nextInt((100 - 50) + 1) + 50);
+                    if (imageUrls.size() == 20) {
+                        break;
+                    }
                 }
-            });
+            }
         }
         catch(MalformedURLException malformedURLException){
             malformedURLException.printStackTrace();
