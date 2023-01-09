@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
                             saveImageToFile(bitmap, filename);
                             //download
                             saveImgMap.put(position,filename);
+                            ((ImageView)view).setColorFilter(Color.argb(120, 255, 255, 255));
                             if (saveImgMap.size()>=6){
                                 startGame();
                             }
