@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,8 +27,10 @@ import android.widget.EditText;
 
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.squareup.picasso.Picasso;
@@ -50,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
     private Button fetchBtn;
@@ -58,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageLoader imageLoader;
     private ProgressBar progressBar;
     private Button restartBtn;
+    private TextView progressTextView;
     private DialogFragment dialogFragment;
 
     private Map<Integer,String> saveImgMap = new HashMap();
@@ -65,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public Map<Integer, String> getSaveImgMap() {
         return saveImgMap;
     }
+    private final Handler handler = new Handler();
 
     //the inputUrl will be passed to the fetch method,which will later use Picasso lib to download the first 20 images
     @Override
@@ -74,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
         fetchUrl=(EditText)findViewById(R.id.fetchUrl);
         fetchBtn=(Button) findViewById(R.id.fetchBtn);
         progressBar=(ProgressBar)findViewById(R.id.progressBar);
+        progressTextView = new TextView(this);
+        //progressTextView.setText("downloading %d images of 20 images");
         restartBtn=(Button) findViewById(R.id.restartBtn);
         gridView=(GridView)findViewById(R.id.girdView);//initialize all ui elements
         imageLoader = new ImageLoader(MainActivity.this);
@@ -139,8 +147,8 @@ public class MainActivity extends AppCompatActivity {
 
 private class ImageUrlParser extends AsyncTask<String,Void,ArrayList<String>> {
     private ProgressBar progressBar;
-
     private int toaalImgs;
+    int  imagesDownloaded =0;
     private Elements imgElement;
     public ImageUrlParser(ProgressBar progressBar, int toaalImgs) {
         this.progressBar = (ProgressBar)findViewById(R.id.progressBar);
@@ -151,29 +159,41 @@ private class ImageUrlParser extends AsyncTask<String,Void,ArrayList<String>> {
     @Override
     protected ArrayList<String> doInBackground(String... strings) {
         String imgUrl=strings[0];
+
         ArrayList<String>imageUrls=new ArrayList<>(20);
         try{
             Document doc=Jsoup.connect(imgUrl).get();
             Elements imgElement=doc.select("img");
-
             for(int i=0; i < imgElement.size();i++) {
-
                 String src = imgElement.get(i).attr("src");
                 if (src.endsWith("jpeg") || src.endsWith("jpg")) {
                     imageUrls.add(src);
-
-                    progressBar.postDelayed(new Runnable() {
+                    imagesDownloaded++;
+                    handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            progressBar.setProgress(progressBar.getProgress() + 1);
+                            progressTextView.setText(String.valueOf(imagesDownloaded)+"of 20 images downloaded");
+                            progressBar.setProgress(imagesDownloaded);
                         }
-                    }, i * new Random().nextInt((100 - 50) + 1) + 50);
-                    if (imageUrls.size() == 20) {
-                        break;
-                    }
+                    });
+                }
                 }
             }
-        }
+
+//                    progressTextView.setText( String.valueOf(imagesDownloaded)+"of 20 images");
+//                    progressTextView.invalidate();
+//                    progressBar.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            progressBar.setProgress(progressBar.getProgress() + 1);
+//                        }
+//                    }, i * new Random().nextInt((100 - 50) + 1) + 50);
+//                    if (imageUrls.size() == 20) {
+//                        break;
+//                    }
+//                }
+//            }
+//        }
         catch(MalformedURLException malformedURLException){
             malformedURLException.printStackTrace();
         }
