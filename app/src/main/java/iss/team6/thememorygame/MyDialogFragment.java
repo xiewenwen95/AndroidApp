@@ -15,6 +15,7 @@ import java.util.Map;
 import kotlinx.coroutines.MainCoroutineDispatcher;
 
 public class MyDialogFragment extends DialogFragment {
+    private static MediaPlayerTool mp = null;
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -23,6 +24,13 @@ public class MyDialogFragment extends DialogFragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                try {
+                    if (mp != null) {
+                        mp.stop();
+                        mp = null;
+                    }
+                    mp = new MediaPlayerTool(getActivity(), R.raw.m2043);
+                } catch (Exception e) {}
                 Intent intent = new Intent(getActivity(), SecondActivity.class);
                 Map<Integer, String> hashSet = ((MainActivity)getActivity()).getSaveImgMap();
                 String[] imgPathsArr = new String[hashSet.size()];
